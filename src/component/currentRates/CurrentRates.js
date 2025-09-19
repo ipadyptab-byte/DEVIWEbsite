@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BsGraphUpArrow } from 'react-icons/bs';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/Firebase'; 
 import borderLine from '../../images/border_line.png';
 import './CurrentRates.css';  
@@ -12,25 +12,34 @@ const CurrentRates = () => {
     ornaments18K: "",
     silver: "",
   });
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        const documentId = "GF8lmn4pjyeuqPzA0xDE";
-        const docRef = doc(db, "rates", documentId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setRates(docSnap.data());
-        } else {
-          console.log("No such document!");
-        }
-      } catch (error) {
-        console.error("Error fetching rates: ", error);
+    const documentId = "GF8lmn4pjyeuqPzA0xDE";
+    const docRef = doc(db, "rates", documentId);
+    
+    // Set up real-time listener
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setRates(docSnap.data());
+        setLastUpdated(new Date().toLocaleTimeString());
+        console.log("Rates updated in real-time");
+      } else {
+        console.log("No such document!");
       }
-    };
+    }, (error) => {
+      console.error("Error listening to rates: ", error);
+      // Fallback to show cached/default rates
+      setRates({
+        vedhani: "Loading...",
+        ornaments22K: "Loading...",
+        ornaments18K: "Loading...",
+        silver: "Loading...",
+      });
+    });
 
-    fetchRates();
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -42,6 +51,11 @@ const CurrentRates = () => {
 
       <div className="tooltip">
         <h1>Today's Gold Rates</h1>
+        {lastUpdated && (
+          <p style={{textAlign: 'center', fontSize: '12px', color: '#666', margin: '5px 0'}}>
+            Last updated: {lastUpdated}
+          </p>
+        )}
         <div className='border-line'>
         <img src={borderLine} alt='border line'/>
         </div>
