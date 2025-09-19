@@ -16,6 +16,7 @@ import About from './pages/aboutus/about';
 import ContactUsPage from './pages/contactUs/ContactUs';
 import UploadImage from './component/UploadImage/UploadImage';
 import Admin from './pages/admin/Admin';
+import TvDisplay from './pages/tvDisplay/TvDisplay';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="admin" element={<Admin/>}/>
           <Route path="upload" element={<UploadImage/>}/>
         </Route>
+        <Route path="/tv-display" element={<TvDisplay/>}/>
       </Routes>
     </ParallaxProvider>
     
