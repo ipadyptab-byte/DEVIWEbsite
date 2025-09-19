@@ -46,7 +46,7 @@ const CurrentRates = () => {
         <img src={borderLine} alt='border line'/>
         </div>
         <ul>
-          <li className='rates'>Vedhani  <span>₹{rates.vedhani || "N/A"}</span></li><br/>
+          <li className='rates'>Vedhani  <span>₹{rates.vedhani24k || "N/A"}</span></li><br/>
           <li className='rates'> 22KT <span>₹{rates.ornaments22K || "N/A"}</span></li><br/>
           <li className='rates'>18KT <span>₹{rates.ornaments18K || "N/A"}</span></li><br/>
           <li className='rates'>Silver <span>₹{rates.silver || "N/A"}</span></li>
