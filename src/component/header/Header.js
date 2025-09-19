@@ -11,6 +11,7 @@ import { FaInfoCircle, FaRegListAlt } from 'react-icons/fa';
 // import { BsGraphUpArrow } from "react-icons/bs";
 import logo from '../../images/logo.png';
 import CurrentRates from '../currentRates/CurrentRates';
+import CurrentRatesDemo from '../currentRates/CurrentRatesDemo';
 
 const HeaderTop = () => {
   return (
@@ -78,7 +79,7 @@ const HeaderMiddle = () => {
 
             {/* Current Rates */}
 
-            <CurrentRates />
+            <CurrentRatesDemo />
 
             <Link className="icon_container" to="/contactUs">
               <span className="icon_wrapper">
