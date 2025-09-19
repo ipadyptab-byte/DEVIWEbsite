@@ -1,0 +1,262 @@
+/* TV Display Full Screen Styling */
+.tv-display {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+}
+
+/* Header Section */
+.tv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 50px;
+}
+
+.company-info h1 {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  margin: 0;
+  letter-spacing: 3px;
+}
+
+.company-info p {
+  font-size: 1.5rem;
+  color: #E8E8E8;
+  margin: 10px 0 0 0;
+  font-style: italic;
+}
+
+.datetime-info {
+  text-align: right;
+}
+
+.current-time {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  font-family: 'Courier New', monospace;
+}
+
+.current-date {
+  font-size: 1.2rem;
+  color: #E8E8E8;
+  margin-top: 10px;
+}
+
+/* Rates Container */
+.rates-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.rates-title {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 60px;
+  color: #FFD700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.rates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 50px;
+}
+
+.rate-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rate-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  border-color: #FFD700;
+}
+
+.rate-label {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 20px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.rate-value {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #FFFFFF;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  font-family: 'Courier New', monospace;
+}
+
+.rate-unit {
+  font-size: 1.2rem;
+  color: #E8E8E8;
+  opacity: 0.8;
+}
+
+/* Specific card colors */
+.gold-vedhani {
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+.gold-22k {
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.gold-18k {
+  border-color: rgba(255, 171, 15, 0.5);
+}
+
+.silver {
+  border-color: rgba(192, 192, 192, 0.5);
+}
+
+.silver .rate-label {
+  color: #C0C0C0;
+}
+
+/* Update Info */
+.update-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 1.2rem;
+  margin-top: 30px;
+}
+
+.live-indicator {
+  background: #00FF00;
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.last-update {
+  color: #E8E8E8;
+}
+
+/* Footer Section */
+.tv-footer {
+  margin-top: auto;
+}
+
+.contact-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.contact-info p {
+  font-size: 1.3rem;
+  color: #E8E8E8;
+  margin: 0;
+}
+
+/* Ticker */
+.ticker {
+  background: rgba(0,0,0,0.3);
+  padding: 15px 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.ticker-content {
+  white-space: nowrap;
+  animation: scroll 30s linear infinite;
+  font-size: 1.1rem;
+  color: #FFD700;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .tv-display {
+    padding: 20px;
+  }
+  
+  .company-info h1 {
+    font-size: 3rem;
+  }
+  
+  .current-time {
+    font-size: 2rem;
+  }
+  
+  .rates-title {
+    font-size: 2.5rem;
+  }
+  
+  .rate-value {
+    font-size: 3rem;
+  }
+  
+  .rates-grid {
+    gap: 20px;
+  }
+  
+  .rate-card {
+    padding: 30px;
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rates-grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+  }
+  
+  .tv-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .datetime-info {
+    text-align: center;
+    margin-top: 20px;
+  }
+}
