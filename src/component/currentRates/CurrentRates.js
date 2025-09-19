@@ -7,7 +7,7 @@ import './CurrentRates.css';
 
 const CurrentRates = () => {
   const [rates, setRates] = useState({
-    vedhani 24k: "",
+    vedhani24k: "",
     ornaments22K: "",
     ornaments18K: "",
     silver: "",
