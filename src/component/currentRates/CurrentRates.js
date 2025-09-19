@@ -14,21 +14,20 @@ const CurrentRates = () => {
   });
 
   useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        const documentId = "GF8lmn4pjyeuqPzA0xDE";
-        const docRef = doc(db, "rates", documentId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setRates(docSnap.data());
-        } else {
-          console.log("No such document!");
-        }
-      } catch (error) {
-        console.error("Error fetching rates: ", error);
-      }
-    };
+  const fetchRates = async () => {
+    try {
+      const response = await fetch("/api/rates");
+      const data = await response.json();
+      setRates({
+        vedhani: data.vedhani,
+        ornaments22K: data.ornaments_22k,
+        ornaments18K: data.ornaments_18k,
+        silver: data.silver
+      });
+    } catch (error) {
+      console.error("Error fetching rates:", error);
+    }
+  };
 
     fetchRates();
   }, []);
