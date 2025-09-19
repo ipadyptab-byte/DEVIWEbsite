@@ -1,63 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { BsGraphUpArrow } from "react-icons/bs";
-import borderLine from "../../images/border_line.png";
-import "./CurrentRates.css";
-
-const API_BASE = "http://103.159.153.24:3000";
+import React, { useState, useEffect } from 'react';
+import { BsGraphUpArrow } from 'react-icons/bs';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/Firebase'; 
+import borderLine from '../../images/border_line.png';
+import './CurrentRates.css';  
 
 const CurrentRates = () => {
   const [rates, setRates] = useState({
-    vedhani24K: "NA",
-    ornaments22K: "NA",
-    ornaments18K: "NA",
-    silver: "NA",
+    vedhani: "",
+    ornaments22K: "",
+    ornaments18K: "",
+    silver: "",
   });
 
   useEffect(() => {
     const fetchRates = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/rates/current`);
-        if (!response.ok) throw new Error("Failed to fetch rates");
-        const apiRates = await response.json();
-        setRates({
-          vedhani24K: apiRates.gold_24k_sale ?? "NA",
-          ornaments22K: apiRates.gold_22k_sale ?? "NA",
-          ornaments18K: apiRates.gold_18k_sale ?? "NA",
-          silver: apiRates.silver_per_kg_sale ?? "NA",
-        });
+        const documentId = "GF8lmn4pjyeuqPzA0xDE";
+        const docRef = doc(db, "rates", documentId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setRates(docSnap.data());
+        } else {
+          console.log("No such document!");
+        }
       } catch (error) {
-        console.error("Error fetching rates from API:", error);
+        console.error("Error fetching rates: ", error);
       }
     };
 
     fetchRates();
-    const interval = setInterval(fetchRates, 30000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="iconcontainer">
-      <span className="iconwrapper"><BsGraphUpArrow /></span>
-      <span className="title">Current Rates</span>
+    <div className="icon_container">
+      <span className="icon_wrapper">
+        <BsGraphUpArrow />
+      </span>  
+      <span className="title">Current Rates</span> 
+
       <div className="tooltip">
         <h1>Today's Gold Rates</h1>
-        <div className="border-line">
-          <img src={borderLine} alt="border line" />
+        <div className='border-line'>
+        <img src={borderLine} alt='border line'/>
         </div>
         <ul>
-          <li className="ratesVedhani">
-            <span>{rates.vedhani}</span>
-          </li>
-          <li className="rates22KT">
-            <span>{rates.ornaments22K}</span>
-          </li>
-          <li className="rates18KT">
-            <span>{rates.ornaments18K}</span>
-          </li>
-          <li className="ratesSilver">
-            <span>{rates.silver}</span>
-          </li>
+          <li className='rates'>Vedhani  <span>₹{rates.vedhani || "N/A"}</span></li><br/>
+          <li className='rates'> 22KT <span>₹{rates.ornaments22K || "N/A"}</span></li><br/>
+          <li className='rates'>18KT <span>₹{rates.ornaments18K || "N/A"}</span></li><br/>
+          <li className='rates'>Silver <span>₹{rates.silver || "N/A"}</span></li>
         </ul>
       </div>
     </div>
