@@ -3,7 +3,7 @@ import { BsGraphUpArrow } from "react-icons/bs";
 import borderLine from "../../images/border_line.png";
 import "./CurrentRates.css";
 
-const API_BASE = "http://103.159.153.24:5000";
+const API_BASE = "http://103.159.153.24:3000";
 
 const CurrentRates = () => {
   const [rates, setRates] = useState({
