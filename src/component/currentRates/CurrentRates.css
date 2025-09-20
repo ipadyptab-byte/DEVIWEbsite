@@ -1,468 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gold Rates Display</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-        
-        header {
-            background: linear-gradient(to right, #daa520, #b8860b);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .logo i {
-            color: #ffd700;
-            text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        }
-        
-        .last-updated {
-            font-size: 14px;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
-        
-        .rates-container {
-            padding: 30px;
-        }
-        
-        .rates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .rate-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .rate-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .rate-card.gold {
-            border-top: 4px solid #ffd700;
-        }
-        
-        .rate-card.silver {
-            border-top: 4px solid #c0c0c0;
-        }
-        
-        .rate-type {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .rate-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        
-        .rate-change {
-            margin-top: 10px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-        
-        .up {
-            color: #27ae60;
-        }
-        
-        .down {
-            color: #e74c3c;
-        }
-        
-        .info-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        
-        .info-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .info-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .info-item {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-        }
-        
-        .info-item h4 {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .info-item p {
-            color: #2c3e50;
-            font-weight: 500;
-        }
-        
-        .icon-tooltip {
-            display: inline-block;
-            position: relative;
-            margin-left: 10px;
-            cursor: pointer;
-        }
-        
-        .icon-tooltip i {
-            color: #7f8c8d;
-            font-size: 16px;
-        }
-        
-        .tooltip-content {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2c3e50;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 14px;
-            width: 200px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .icon-tooltip:hover .tooltip-content {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .tooltip-content:after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 5px;
-            border-style: solid;
-            border-color: #2c3e50 transparent transparent transparent;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-            font-size: 14px;
-            border-top: 1px solid #eee;
-        }
-        
-        @media (max-width: 768px) {
-            .rates-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .rate-card {
-                padding: 15px;
-            }
-            
-            .rate-value {
-                font-size: 24px;
-            }
-        }
-        
-        /* Floating rate indicator for address bar area */
-        .floating-rate {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: linear-gradient(to right, #daa520, #b8860b);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            z-index: 1000;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .floating-rate:hover {
-            transform: scale(1.05);
-        }
-        
-        .floating-tooltip {
-            position: absolute;
-            bottom: 100%;
-            right: 0;
-            background: #2c3e50;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            width: 280px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-        }
-        
-        .floating-rate:hover .floating-tooltip {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .floating-tooltip h3 {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .floating-tooltip ul {
-            list-style: none;
-        }
-        
-        .floating-tooltip li {
-            padding: 8px 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .floating-tooltip li:last-child {
-            border-bottom: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <i class="fas fa-coins"></i>
-                <span>Devi Jewellers - Gold & Silver Rates</span>
-            </div>
-            <div class="last-updated">Last updated: <span id="update-time">Today, 10:30 AM</span></div>
-        </header>
-        
-        <div class="rates-container">
-            <div class="rates-grid">
-                <div class="rate-card gold">
-                    <div class="rate-type">
-                        <i class="fas fa-crown"></i>
-                        <span>24K Gold (Vedhani)</span>
-                    </div>
-                    <div class="rate-value">₹6,245/g</div>
-                    <div class="rate-change up">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+ ₹50 (0.8%)</span>
-                    </div>
-                </div>
-                
-                <div class="rate-card gold">
-                    <div class="rate-type">
-                        <i class="fas fa-ring"></i>
-                        <span>22K Ornaments</span>
-                    </div>
-                    <div class="rate-value">₹5,845/g</div>
-                    <div class="rate-change up">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+ ₹45 (0.7%)</span>
-                    </div>
-                </div>
-                
-                <div class="rate-card gold">
-                    <div class="rate-type">
-                        <i class="fas fa-gem"></i>
-                        <span>18K Ornaments</span>
-                    </div>
-                    <div class="rate-value">₹4,765/g</div>
-                    <div class="rate-change up">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+ ₹35 (0.6%)</span>
-                    </div>
-                </div>
-                
-                <div class="rate-card silver">
-                    <div class="rate-type">
-                        <i class="fas fa-moon"></i>
-                        <span>Silver</span>
-                    </div>
-                    <div class="rate-value">₹84.50/g</div>
-                    <div class="rate-change up">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+ ₹1.20 (1.4%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-section">
-                <div class="info-title">
-                    <i class="fas fa-info-circle"></i>
-                    Market Information
-                    <div class="icon-tooltip">
-                        <i class="fas fa-question-circle"></i>
-                        <div class="tooltip-content">
-                            Rates are updated every 30 minutes from our trusted sources.
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="info-content">
-                    <div class="info-item">
-                        <h4>DATA SOURCE</h4>
-                        <p>MCX & International Markets</p>
-                    </div>
-                    
-                    <div class="info-item">
-                        <h4>NEXT UPDATE</h4>
-                        <p id="next-update">In 25 minutes</p>
-                    </div>
-                    
-                    <div class="info-item">
-                        <h4>TREND</h4>
-                        <p>Rising <i class="fas fa-arrow-up up"></i></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <footer>
-            <p>© 2023 Devi Jewellers | Rates for reference only | Actual rates may vary</p>
-        </footer>
-    </div>
-    
-    <!-- Floating rate indicator for address bar area -->
-    <div class="floating-rate">
-        <i class="fas fa-chart-line"></i>
-        <span>Gold: ₹6,245</span>
-        <div class="floating-tooltip">
-            <h3><i class="fas fa-coins"></i> Current Rates</h3>
-            <ul>
-                <li>24K Gold: <span>₹6,245/g</span></li>
-                <li>22K Ornaments: <span>₹5,845/g</span></li>
-                <li>18K Ornaments: <span>₹4,765/g</span></li>
-                <li>Silver: <span>₹84.50/g</span></li>
-            </ul>
-        </div>
-    </div>
+.icon_container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
 
-    <script>
-        // Update time function
-        function updateTime() {
-            const now = new Date();
-            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            document.getElementById('update-time').textContent = now.toLocaleDateString('en-IN', options);
-            
-            // Calculate next update time (30 minutes from now)
-            const nextUpdate = new Date(now.getTime() + 30 * 60000);
-            document.getElementById('next-update').textContent = 'At ' + nextUpdate.toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'});
-        }
-        
-        // Initialize and update time every minute
-        updateTime();
-        setInterval(updateTime, 60000);
-        
-        // Simulate live rate updates (in a real app, this would come from an API)
-        function simulateRateChange() {
-            const rates = document.querySelectorAll('.rate-value');
-            const changes = document.querySelectorAll('.rate-change');
-            
-            rates.forEach(rate => {
-                const current = parseFloat(rate.textContent.replace('₹', '').replace('/g', '').replace(',', ''));
-                const change = Math.random() * 10;
-                const newRate = current + (Math.random() > 0.5 ? change : -change);
-                
-                rate.textContent = `₹${newRate.toLocaleString('en-IN', {maximumFractionDigits: 2})}/g`;
-            });
-            
-            changes.forEach(change => {
-                const isPositive = Math.random() > 0.3;
-                const value = (Math.random() * 50).toFixed(2);
-                const percent = (Math.random() * 1.5).toFixed(1);
-                
-                change.innerHTML = isPositive ? 
-                    `<i class="fas fa-arrow-up"></i> + ₹${value} (${percent}%)` :
-                    `<i class="fas fa-arrow-down"></i> - ₹${value} (${percent}%)`;
-                
-                change.className = isPositive ? 'rate-change up' : 'rate-change down';
-            });
-            
-            // Update the floating rate indicator
-            const goldRate = document.querySelector('.rate-card.gold .rate-value').textContent.split('/')[0];
-            document.querySelector('.floating-rate span').textContent = `Gold: ${goldRate}`;
-        }
-        
-        // Update rates every 2 minutes (simulated)
-        setInterval(simulateRateChange, 120000);
-    </script>
-</body>
-</html>
+.icon_wrapper {
+    font-size: 24px;
+    color: #333;
+}
+
+.title {
+    font-size: 16px;
+    margin-left: 10px;
+    color: #333;
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    top: 120%;
+    left: 0%;
+    transform: translateX(-50%);
+    width: 300px;
+    background-color: #fff;
+    border: 1px solid black;
+    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
+    padding: 20px;
+    z-index: 10;
+    color: black;
+}
+
+.tooltip h1{
+    text-align: center;
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.border-line{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 35px;
+}
+
+.border-line img{
+    width: 80%;
+    height: 10%;
+    margin: auto;
+}
+
+.rates{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.tooltip ul{
+    list-style: none;
+}
+
+.icon_container:hover .tooltip {
+    display: block;
+}
