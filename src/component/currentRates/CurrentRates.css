@@ -1,67 +1,109 @@
 .icon_container {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #f8f8f8, #e1e1e1);
+  box-shadow: 3px 3px 6px #d1d1d1, -3px -3px 6px #ffffff;
+  transition: all 0.3s ease;
+}
+
+.icon_container:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
 }
 
 .icon_wrapper {
-    font-size: 24px;
-    color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  color: #ffd700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
 .title {
-    font-size: 16px;
-    margin-left: 10px;
-    color: #333;
+  display: block;
+  text-align: center;
+  margin-top: 5px;
+  font-weight: bold;
+  color: #333;
 }
 
 .tooltip {
-    display: none;
-    position: absolute;
-    top: 120%;
-    left: 0%;
-    transform: translateX(-50%);
-    width: 300px;
-    background-color: #fff;
-    border: 1px solid black;
-    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); */
-    padding: 20px;
-    z-index: 10;
-    color: black;
-}
-
-.tooltip h1{
-    text-align: center;
-    font-size: 24px;
-    font-weight: 400;
-}
-
-.border-line{
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 35px;
-}
-
-.border-line img{
-    width: 80%;
-    height: 10%;
-    margin: auto;
-}
-
-.rates{
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    font-size: 18px;
-    font-weight: 400;
-}
-
-.tooltip ul{
-    list-style: none;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
 }
 
 .icon_container:hover .tooltip {
-    display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip h1 {
+  font-size: 18px;
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: #b8860b;
+}
+
+.border-line {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.line {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #ccc, transparent);
+  width: 90%;
+  margin: 0 auto;
+}
+
+.tooltip ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tooltip .rates {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.tooltip .rates:last-child {
+  border-bottom: none;
+}
+
+.tooltip .rates span {
+  font-weight: bold;
+  color: #c0a50e;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tooltip {
+    width: 250px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .icon_container {
+    margin: 5px;
+  }
 }
