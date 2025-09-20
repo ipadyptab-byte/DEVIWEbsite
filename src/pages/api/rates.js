@@ -1,31 +1,30 @@
-import { db } from "@/lib/db";
-import { goldRates } from "@/lib/schema";
-import { pushRatesToVercel } from "@/lib/syncToVercel";
+import client from "@/db";
 
 export default async function handler(req, res) {
-  if (req.method === "POST") {
-    try {
-      const { gold_24k_sale, silver_24k_sale } = req.body;
+  try {
+    await client.connect();
 
-      // 1. Save to Render DB
-      const [newRate] = await db.insert(goldRates).values({
-        gold_24k_sale,
-        silver_24k_sale,
-      }).returning("*");
+    const result = await client.query(
+      "SELECT gold_24k_sale, gold_22k_sale, gold_18k_sale, silver_per_kg_sale FROM gold_rates ORDER BY id DESC LIMIT 1"
+    );
 
-      // 2. Push to Vercel DB
-      await pushRatesToVercel({
-        gold_24k_sale: newRate.gold_24k_sale,
-        silver_24k_sale: newRate.silver_24k_sale,
-      });
+    await client.end();
 
-      return res.status(200).json(newRate);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Failed to update rates" });
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "No rates found" });
     }
-  }
 
-  res.status(405).end(); // Method Not Allowed
+    const row = result.rows[0];
+
+    res.status(200).json({
+      gold_24k_sale: row.gold_24k_sale,
+      gold_22k_sale: row.gold_22k_sale,
+      gold_18k_sale: row.gold_18k_sale,
+      silver_per_kg_sale: row.silver_per_kg_sale,
+      source: "vercel_postgresql",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch rates" });
+  }
 }
- 
