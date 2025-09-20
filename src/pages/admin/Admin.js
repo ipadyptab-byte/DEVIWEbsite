@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import client from "@/db";
+import client from "@/lib/db";
 import "./Admin.css";
 
 const Admin = () => {
