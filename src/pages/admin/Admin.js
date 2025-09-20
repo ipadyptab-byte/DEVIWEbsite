@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase/Firebase";
+import client from "@/db";
 import "./Admin.css";
 
 const Admin = () => {
@@ -14,49 +13,43 @@ const Admin = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setRates((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setRates((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // simple validation
     if (
       rates.vedhani <= 0 ||
       rates.ornaments22K <= 0 ||
       rates.ornaments18K <= 0 ||
       rates.silver <= 0
     ) {
-      return alert("⚠️ Please enter valid positive numbers for all rates.");
+      return alert("Enter valid positive numbers for all rates.");
     }
 
     try {
       setLoading(true);
+      await client.connect();
 
-      const documentId = "GF8lmn4pjyeuqPzA0xDE"; // 🔧 Move to ENV later
-      const documentRef = doc(db, "rates", documentId);
+      await client.query(
+        `INSERT INTO gold_rates (gold_24k_sale, gold_22k_sale, gold_18k_sale, silver_per_kg_sale)
+         VALUES ($1, $2, $3, $4)`,
+        [
+          Number(rates.vedhani),
+          Number(rates.ornaments22K),
+          Number(rates.ornaments18K),
+          Number(rates.silver),
+        ]
+      );
 
-      await updateDoc(documentRef, {
-        gold_24k_sale: Number(rates.vedhani),
-        gold_22k_sale: Number(rates.ornaments22K),
-        gold_18k_sale: Number(rates.ornaments18K),
-        silver_per_kg_sale: Number(rates.silver),
-        updated_at: new Date().toISOString(),
-      });
+      await client.end();
 
       alert("✅ Rates updated successfully!");
-      setRates({
-        vedhani: "",
-        ornaments22K: "",
-        ornaments18K: "",
-        silver: "",
-      });
-    } catch (error) {
-      console.error("❌ Error updating rates: ", error);
-      alert("Failed to update rates.");
+      setRates({ vedhani: "", ornaments22K: "", ornaments18K: "", silver: "" });
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to update rates");
     } finally {
       setLoading(false);
     }
