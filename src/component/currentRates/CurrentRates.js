@@ -16,7 +16,13 @@ const CurrentRates = () => {
 useEffect(() => {
   const fetchRates = async () => {
     try {
-      const response = await fetch("/api/rates");
+      async function getRates() {
+  const data = await fetch('/api/rates');
+  console.log(data);
+}
+
+getRates();
+
       const data = await response.json();
       setRates({
         vedhani: data.vedhani,
