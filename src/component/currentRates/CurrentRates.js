@@ -15,11 +15,11 @@ const CurrentRates = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch rates from Vercel PostgreSQL API
+    // Fetch rates from PostgreSQL API (NO FIREBASE)
     const fetchRates = async () => {
       try {
         setIsLoading(true);
-        console.log('🔄 Fetching rates from Vercel PostgreSQL...');
+        console.log('🔄 Fetching rates from PostgreSQL API...');
         
         const response = await fetch('/api/sync-rates', {
           method: 'GET',
@@ -35,10 +35,10 @@ const CurrentRates = () => {
           
           // Convert PostgreSQL format to display format
           const convertedRates = {
-            vedhani: data.gold_24k_sale?.toString() || "Unavailable",
-            ornaments22K: data.gold_22k_sale?.toString() || "Unavailable",
-            ornaments18K: data.gold_18k_sale?.toString() || "Unavailable",
-            silver: Math.round(data.silver_per_kg_sale / 1000).toString() || "Unavailable" // Convert per KG to per gram
+            vedhani: data.gold_24k_sale?.toString() || "Loading...",
+            ornaments22K: data.gold_22k_sale?.toString() || "Loading...",
+            ornaments18K: data.gold_18k_sale?.toString() || "Loading...",
+            silver: Math.round(data.silver_per_kg_sale / 1000).toString() || "Loading..." // Convert per KG to per gram
           };
           
           setRates(convertedRates);
@@ -79,7 +79,7 @@ const CurrentRates = () => {
 
   // Helper function to format rates with proper number formatting
   const formatRate = (rate) => {
-    if (!rate || rate === "Error" || rate === "Unavailable" || rate === "Loading...") {
+    if (!rate || rate === "Error" || rate === "Loading...") {
       return rate;
     }
     // Add thousands separator for Indian number format
@@ -90,8 +90,8 @@ const CurrentRates = () => {
   const getSourceIcon = () => {
     switch (dataSource) {
       case 'vercel_postgresql': return '🐘 Live';
+      case 'local_postgresql': return '🏠 Local';
       case 'local_sync': return '🔄 Sync';
-      case 'local_fallback': return '🔗 Backup';
       case 'loading': return '⏳ Loading';
       case 'error': return '❌ Error';
       default: return '📡 API';
