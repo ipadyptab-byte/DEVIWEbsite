@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BsGraphUpArrow } from 'react-icons/bs';
-import borderLine from '../../images/border_line.png';
-import './CurrentRates.css';  
+import './CurrentRates.css';
 
 const CurrentRates = () => {
   const [rates, setRates] = useState({
@@ -15,13 +14,14 @@ const CurrentRates = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch rates from PostgreSQL API (NO FIREBASE)
+    // Fetch rates from backend API
     const fetchRates = async () => {
       try {
         setIsLoading(true);
-        console.log('🔄 Fetching rates from PostgreSQL API...');
+        console.log('🔄 Fetching rates from server API...');
         
-        const response = await fetch('/api/sync-rates', {
+        // Use the correct endpoint for your backend
+        const response = await fetch('/api/rates/current', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -31,9 +31,9 @@ const CurrentRates = () => {
         
         if (response.ok) {
           const data = await response.json();
-          console.log('✅ Rates fetched from PostgreSQL:', data);
+          console.log('✅ Rates fetched from server:', data);
           
-          // Convert PostgreSQL format to display format
+          // Convert to display format
           const convertedRates = {
             vedhani: data.gold_24k_sale?.toString() || "Loading...",
             ornaments22K: data.gold_22k_sale?.toString() || "Loading...",
@@ -43,7 +43,7 @@ const CurrentRates = () => {
           
           setRates(convertedRates);
           setLastUpdated(new Date().toLocaleTimeString());
-          setDataSource(data.source || 'postgresql');
+          setDataSource('local_server');
           
         } else {
           throw new Error(`API responded with status: ${response.status}`);
@@ -91,6 +91,7 @@ const CurrentRates = () => {
     switch (dataSource) {
       case 'vercel_postgresql': return '🐘 Live';
       case 'local_postgresql': return '🏠 Local';
+      case 'local_server': return '🖥️ Server';
       case 'local_sync': return '🔄 Sync';
       case 'loading': return '⏳ Loading';
       case 'error': return '❌ Error';
@@ -131,18 +132,18 @@ const CurrentRates = () => {
           </div>
         )}
         <div className='border-line'>
-          <img src={borderLine} alt='border line'/>
+          <div className="line"></div>
         </div>
         <ul>
           <li className='rates'>
             Vedhani <span>₹{formatRate(rates.vedhani)}</span>
-          </li><br/>
+          </li>
           <li className='rates'>
             22KT <span>₹{formatRate(rates.ornaments22K)}</span>
-          </li><br/>
+          </li>
           <li className='rates'>
             18KT <span>₹{formatRate(rates.ornaments18K)}</span>
-          </li><br/>
+          </li>
           <li className='rates'>
             Silver <span>₹{formatRate(rates.silver)}/g</span>
           </li>
