@@ -14,20 +14,23 @@ const CurrentRates = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch rates from backend API
-    const fetchRates = async () => {
-      try {
-        setIsLoading(true);
-        console.log('🔄 Fetching rates from server API...');
-        
-        // Use the correct endpoint for your backend
-        const response = await fetch('/api/rates/current', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
-        });
+  const fetchRates = async () => {
+    try {
+      const response = await fetch("/api/rates");
+      const data = await response.json();
+      setRates({
+        vedhani: data.vedhani,
+        ornaments22K: data.ornaments_22k,
+        ornaments18K: data.ornaments_18k,
+        silver: data.silver
+      });
+    } catch (error) {
+      console.error("Error fetching rates:", error);
+    }
+  };   
+
+  fetchRates();
+}, []);
         
         if (response.ok) {
           const data = await response.json();
