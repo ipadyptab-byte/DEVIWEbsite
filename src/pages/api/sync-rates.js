@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 
-// PostgreSQL connection using Neon
+// PostgreSQL connection using Neon - using the pooled connection string
 const sql = neon(process.env.DATABASE_URL);
 
 export default async function handler(req, res) {
@@ -15,10 +15,10 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'POST') {
-      // Receive rates from your local system and store in Vercel PostgreSQL
+      // Receive rates from local system and store in Vercel PostgreSQL
       const localRates = req.body;
       
-      console.log('Received rates from local system:', localRates);
+      console.log('📥 Received rates from local system:', localRates);
       
       // Create the rates table if it doesn't exist
       await sql`
@@ -94,53 +94,21 @@ export default async function handler(req, res) {
         `;
         
         if (rates.length === 0) {
-          // No rates found - try to fetch from local system as fallback
-          try {
-            const localApiUrl = process.env.LOCAL_API_URL || 'https://your-replit-domain.replit.app';
-            const response = await fetch(`${localApiUrl}/api/rates/current`, {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' },
-              timeout: 10000,
-            });
-            
-            if (response.ok) {
-              const localRates = await response.json();
-              if (localRates) {
-                // Store the rates we just fetched
-                const storedRates = await sql`
-                  INSERT INTO gold_rates (
-                    gold_24k_sale, gold_24k_purchase, gold_22k_sale, gold_22k_purchase,
-                    gold_18k_sale, gold_18k_purchase, silver_per_kg_sale, silver_per_kg_purchase,
-                    is_active, source
-                  ) VALUES (
-                    ${localRates.gold_24k_sale}, ${localRates.gold_24k_purchase},
-                    ${localRates.gold_22k_sale}, ${localRates.gold_22k_purchase},
-                    ${localRates.gold_18k_sale}, ${localRates.gold_18k_purchase},
-                    ${localRates.silver_per_kg_sale}, ${localRates.silver_per_kg_purchase},
-                    true, 'local_fallback'
-                  ) RETURNING *
-                `;
-                
-                return res.status(200).json({
-                  ...storedRates[0],
-                  source: 'local_fallback'
-                });
-              }
-            }
-          } catch (fallbackError) {
-            console.error('Local API fallback failed:', fallbackError);
-          }
-          
-          return res.status(404).json({ error: 'No rates found in any system' });
+          console.log('⚠️ No rates found in Vercel PostgreSQL');
+          return res.status(404).json({ 
+            error: 'No rates found',
+            message: 'No rates available in PostgreSQL database'
+          });
         }
         
+        console.log('✅ Returning rates from Vercel PostgreSQL');
         return res.status(200).json({
           ...rates[0],
           source: 'vercel_postgresql'
         });
         
       } catch (dbError) {
-        console.error('Database query error:', dbError);
+        console.error('❌ Database query error:', dbError);
         return res.status(500).json({ error: 'Database query failed' });
       }
     }
@@ -148,15 +116,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
     
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('❌ API Error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
       message: error.message 
     });
   }
 }
-
-// Use the default serverless runtime
-export const config = {
-  runtime: 'nodejs',
-};
