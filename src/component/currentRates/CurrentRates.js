@@ -13,10 +13,10 @@ const CurrentRates = () => {
   const [dataSource, setDataSource] = useState('loading');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
   const fetchRates = async () => {
     try {
-      const response = await fetch("/api/rates");
+      const response = await fetch("/api/rates"); // ✅ valid
       const data = await response.json();
       setRates({
         vedhani: data.vedhani,
@@ -27,10 +27,11 @@ const CurrentRates = () => {
     } catch (error) {
       console.error("Error fetching rates:", error);
     }
-  };   
+  };
 
   fetchRates();
 }, []);
+
         
         if (response.ok) {
           const data = await response.json();
