@@ -16,7 +16,7 @@ const CurrentRates = () => {
 useEffect(() => {
   const fetchRates = async () => {
     try {
-      const response = await fetch("/api/rates"); // ✅ valid
+      const response = await fetch("/api/rates");
       const data = await response.json();
       setRates({
         vedhani: data.vedhani,
@@ -25,11 +25,11 @@ useEffect(() => {
         silver: data.silver
       });
     } catch (error) {
-      console.error("Error fetching rates:", error);
+      console.error("❌ Failed to fetch rates:", error);
     }
   };
 
-  fetchRates();
+  fetchRates(); // call async function
 }, []);
 
         
