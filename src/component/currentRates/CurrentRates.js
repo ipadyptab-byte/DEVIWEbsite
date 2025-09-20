@@ -21,7 +21,7 @@ const CurrentRates = () => {
         setIsLoading(true);
         console.log('🔄 Fetching rates from PostgreSQL API...');
         
-        const response = await fetch('pages/api/sync-rates', {
+        const response = await fetch('/api/sync-rates', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
