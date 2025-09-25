@@ -87,7 +87,36 @@ export default async function handler(req, res) {
       source: 'vercel_postgresql',
     });
   } catch (error) {
-    console.error('rates api error:', error);
-    return res.status(500).json({ error: 'Failed to fetch rates' });
+    // Fallback: if DB/env isn't available on this environment, serve external feed directly
+    try {
+      const apiUrl = 'https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php';
+      const resp = await fetch(apiUrl, { cache: 'no-store' });
+      if (!resp.ok) {
+        console.error('rates api error (db + external failed):', error);
+        return res.status(500).json({ error: 'Failed to fetch rates' });
+      }
+      const raw = await resp.text();
+      const cleaned = raw.trim()
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/\s*```$/i, '');
+      const data = JSON.parse(cleaned);
+
+      const gold_24k_sale = Number(data['24K Gold']) || null;
+      const gold_22k_sale = Number(data['22K Gold']) || null;
+      const gold_18k_sale = Number(data['18K Gold']) || null;
+      const silver_per_gram = data?.Silver ? Number(data.Silver) / 10 : null;
+
+      return res.status(200).json({
+        gold_24k_sale,
+        gold_22k_sale,
+        gold_18k_sale,
+        silver_per_kg_sale: silver_per_gram != null ? silver_per_gram * 1000 : null,
+        source: 'businessmantra_api_fallback',
+      });
+    } catch (fallbackErr) {
+      console.error('rates api error (fallback failed):', fallbackErr);
+      return res.status(500).json({ error: 'Failed to fetch rates' });
+    }
   }
 }
