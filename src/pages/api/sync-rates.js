@@ -1,18 +1,27 @@
-import { neon } from '@neondatabase/serverless';
+// Vercel Serverless Function: /api/sync-rates
+// GET: returns latest active row from gold_rates
+// POST: upserts a new active row with provided body values
 
-const sql = neon(process.env.DATABASE_URL);
-
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // CORS (optional if only called same-origin)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Content-Type", "application/json");
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
   try {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      return res.status(500).end(JSON.stringify({ error: "DATABASE_URL not configured" }));
+    }
+
+    const { neon } = await import("@neondatabase/serverless");
+    const sql = neon(dbUrl);
+
     // Ensure table exists
     await sql`
       CREATE TABLE IF NOT EXISTS gold_rates (
@@ -31,7 +40,7 @@ export default async function handler(req, res) {
       )
     `;
 
-    if (req.method === 'POST') {
+    if (req.method === "POST") {
       const localRates = req.body || {};
 
       await sql`UPDATE gold_rates SET is_active = false`;
@@ -50,14 +59,18 @@ export default async function handler(req, res) {
         ) RETURNING *
       `;
 
-      return res.status(200).json({
-        success: true,
-        message: 'Rates synced successfully to Vercel PostgreSQL',
-        data: result[0],
-      });
+      return res
+        .status(200)
+        .end(
+          JSON.stringify({
+            success: true,
+            message: "Rates synced successfully to Vercel PostgreSQL",
+            data: result[0],
+          })
+        );
     }
 
-    if (req.method === 'GET') {
+    if (req.method === "GET") {
       const rates = await sql`
         SELECT * FROM gold_rates
         WHERE is_active = true
@@ -65,14 +78,14 @@ export default async function handler(req, res) {
         LIMIT 1
       `;
       if (!rates.length) {
-        return res.status(404).json({ error: 'No rates found' });
+        return res.status(404).end(JSON.stringify({ error: "No rates found" }));
       }
-      return res.status(200).json({ ...rates[0], source: 'vercel_postgresql' });
+      return res.status(200).end(JSON.stringify({ ...rates[0], source: "vercel_postgresql" }));
     }
 
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).end(JSON.stringify({ error: "Method not allowed" }));
   } catch (error) {
-    console.error('sync-rates api error:', error);
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    console.error("sync-rates api error:", error);
+    return res.status(500).end(JSON.stringify({ error: "Internal server error", message: error.message }));
   }
-}
+};
