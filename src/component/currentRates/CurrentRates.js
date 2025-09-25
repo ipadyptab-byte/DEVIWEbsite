@@ -113,6 +113,7 @@ const CurrentRates = () => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchRates(); // initial fetch
 
@@ -122,7 +123,6 @@ const CurrentRates = () => {
     }, 30000); // every 30s
 
     return () => clearInterval(refreshInterval); // cleanup
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Format INR style
