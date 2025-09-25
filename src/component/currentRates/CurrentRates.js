@@ -16,10 +16,22 @@ const CurrentRates = () => {
   // Fetch rates from API
   const fetchRates = async () => {
     try {
-      const response = await fetch("/api/rates");
+      const response = await fetch("/api/rates", { cache: "no-store" });
       if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-      const data = await response.json();
+      // Some deployments may serve HTML if the API route isn't found.
+      // Guard against non-JSON responses.
+      const contentType = response.headers.get("content-type") || "";
+      let data;
+      if (contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(
+          `Non-JSON response from /api/rates. First chars: ${text.slice(0, 15)}`
+        );
+      }
+
       console.log("✅ Rates fetched from server:", data);
 
       const convertedRates = {

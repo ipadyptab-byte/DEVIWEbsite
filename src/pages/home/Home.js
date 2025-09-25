@@ -16,21 +16,27 @@ const Home = () => {
 
   useEffect(() => {
     const fetchLatestImage = async () => {
-      const storage = getStorage();
-      const listRef = ref(storage, 'images/');
-      const res = await listAll(listRef);
+      try {
+        // If Firebase app isn't initialized, getStorage() will throw.
+        const storage = getStorage();
+        const listRef = ref(storage, 'images/');
+        const res = await listAll(listRef);
 
-      if (res.items.length > 0) {
-        // Sort items by the timestamp in the file name
-        const sortedItems = res.items.sort((a, b) => {
-          const aTimestamp = parseInt(a.name.split('_')[0], 10);
-          const bTimestamp = parseInt(b.name.split('_')[0], 10);
-          return bTimestamp - aTimestamp;
-        });
+        if (res.items.length > 0) {
+          // Sort items by the timestamp in the file name
+          const sortedItems = res.items.sort((a, b) => {
+            const aTimestamp = parseInt(a.name.split('_')[0], 10);
+            const bTimestamp = parseInt(b.name.split('_')[0], 10);
+            return bTimestamp - aTimestamp;
+          });
 
-        const latestItem = sortedItems[0]; // Get the most recent image
-        const url = await getDownloadURL(latestItem);
-        setLatestImageUrl(url);
+          const latestItem = sortedItems[0]; // Get the most recent image
+          const url = await getDownloadURL(latestItem);
+          setLatestImageUrl(url);
+        }
+      } catch (e) {
+        // Suppress popup if Firebase isn't configured
+        console.warn('Popup image fetch skipped (Firebase not initialized):', e?.message || e);
       }
     };
 
