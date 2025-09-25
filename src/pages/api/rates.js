@@ -1,6 +1,5 @@
 export default async function handler(req, res) {
   try {
-    // Fetch latest rates from Business Mantra API
     const apiUrl = "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php";
     const response = await fetch(apiUrl, { cache: "no-store" });
 
@@ -8,27 +7,41 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: `Upstream API error: ${response.status}` });
     }
 
-    const data = await response.json();
+    // Read raw text then try to parse JSON safely (handles cases where upstream
+    // might wrap the payload in code fences or send stray characters)
+    const raw = await response.text();
+    const cleaned = raw
+      .trim()
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "");
 
-    // The API returns keys like: {"24K Gold":113000,"22K Gold":103960,"18K Gold":93790,"Silver":1340}
-    // Map to our frontend expectations. Silver appears in many feeds as per 10g;
-    // the UI shows Silver per gram, so convert by dividing by 10 (adjust here if feed spec changes).
+    let data;
+    try {
+      data = JSON.parse(cleaned);
+    } catch (parseErr) {
+      // Return a diagnostic error to the client; front-end will show a graceful message
+      return res.status(502).json({
+        error: "Invalid JSON from upstream",
+        details: parseErr.message,
+        raw: raw.slice(0, 200),
+      });
+    }
+
     const mapped = {
       gold_24k_sale: Number(data["24K Gold"]) || null,
       gold_22k_sale: Number(data["22K Gold"]) || null,
       gold_18k_sale: Number(data["18K Gold"]) || null,
-      // convert to per gram for UI: if the source already provides per gram, change divisor to 1
-      silver_per_kg_sale: data?.Silver ? Number(data.Silver) * 10 : null, // maintain legacy field name but keep value as per kg equivalent
+      // Silver appears to be per 10g from external feed; convert to per gram
       silver_per_gram: data?.Silver ? Number(data.Silver) / 10 : null,
     };
 
-    // Respond in the same shape CurrentRates expects
+    // CurrentRates.js divides silver_per_kg_sale by 1000 to show per gram.
+    // Provide a kg-equivalent derived from per-gram for compatibility.
     return res.status(200).json({
       gold_24k_sale: mapped.gold_24k_sale,
       gold_22k_sale: mapped.gold_22k_sale,
       gold_18k_sale: mapped.gold_18k_sale,
-      // CurrentRates.js divides silver_per_kg_sale by 1000 to display per gram.
-      // Provide a compatible value by sending grams->kg conversion here.
       silver_per_kg_sale: mapped.silver_per_gram != null ? mapped.silver_per_gram * 1000 : null,
       source: "businessmantra_api",
     });
