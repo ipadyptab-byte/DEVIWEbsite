@@ -3,6 +3,9 @@ import { neon } from '@neondatabase/serverless';
 const sql = neon(process.env.DATABASE_URL);
 
 export default async function handler(req, res) {
+  // Always send JSON content-type
+  res.setHeader('Content-Type', 'application/json');
+
   try {
     // Ensure table exists (first-time deployments)
     await sql`
