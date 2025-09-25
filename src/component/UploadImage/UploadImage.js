@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { safeGetStorage } from '../../lib/firebase';
 import './UploadImage.css';
 
 const UploadImage = () => {
@@ -20,7 +21,12 @@ const UploadImage = () => {
       return;
     }
 
-    const storage = getStorage();
+    const storage = safeGetStorage();
+    if (!storage) {
+      setStatus('Storage not configured.');
+      return;
+    }
+
     const timestamp = new Date().getTime(); // Generate a timestamp
     const fileName = `${timestamp}_${image.name}`; // Include timestamp in the file name
     const storageRef = ref(storage, `images/${fileName}`);
