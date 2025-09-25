@@ -13,41 +13,93 @@ const CurrentRates = () => {
   const [dataSource, setDataSource] = useState("loading");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch rates from API
+  // Normalize payload into component state
+  const toState = (data, sourceLabel) => {
+    return {
+      vedhani: data.gold_24k_sale != null ? data.gold_24k_sale.toString() : "Loading...",
+      ornaments22K: data.gold_22k_sale != null ? data.gold_22k_sale.toString() : "Loading...",
+      ornaments18K: data.gold_18k_sale != null ? data.gold_18k_sale.toString() : "Loading...",
+      silver:
+        data.silver_per_kg_sale != null
+          ? Math.round(Number(data.silver_per_kg_sale) / 1000).toString()
+          : "Loading...",
+    };
+  };
+
+  // Attempt to fetch JSON safely; throws if not JSON
+  const fetchJsonSafe = async (url) => {
+    const resp = await fetch(url, { cache: "no-store" });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const ct = resp.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      return await resp.json();
+    }
+    // If upstream wraps JSON in backticks, clean and parse
+    const text = await resp.text();
+    const cleaned = text
+      .trim()
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/i, "");
+    try {
+      return JSON.parse(cleaned);
+    } catch (e) {
+      throw new Error(`Non-JSON response at ${url}: ${text.slice(0, 50)}`);
+    }
+  };
+
+  // Fetch rates from API with robust fallbacks
   const fetchRates = async () => {
     try {
-      const response = await fetch("/api/rates", { cache: "no-store" });
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-      // Some deployments may serve HTML if the API route isn't found.
-      // Guard against non-JSON responses.
-      const contentType = response.headers.get("content-type") || "";
-      let data;
-      if (contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        throw new Error(
-          `Non-JSON response from /api/rates. First chars: ${text.slice(0, 15)}`
-        );
+      // 1) Try same-origin serverless route
+      try {
+        const data = await fetchJsonSafe("/api/rates");
+        const convertedRates = toState(data, data.source || "vercel_postgresql");
+        setRates(convertedRates);
+        setDataSource(data.source || "vercel_postgresql");
+        setLastUpdated(new Date().toLocaleTimeString());
+        return;
+      } catch (e) {
+        console.warn("Primary /api/rates failed:", e.message);
       }
 
-      console.log("✅ Rates fetched from server:", data);
+      // 2) Try absolute path (in case of domain/proxy issues)
+      try {
+        const origin = window?.location?.origin || "";
+        const data = await fetchJsonSafe(`${origin}/api/rates`);
+        const convertedRates = toState(data, data.source || "vercel_postgresql");
+        setRates(convertedRates);
+        setDataSource(data.source || "vercel_postgresql");
+        setLastUpdated(new Date().toLocaleTimeString());
+        return;
+      } catch (e) {
+        console.warn("Absolute /api/rates failed:", e.message);
+      }
 
-      const convertedRates = {
-        vedhani: data.gold_24k_sale?.toString() ?? "Loading...",
-        ornaments22K: data.gold_22k_sale?.toString() ?? "Loading...",
-        ornaments18K: data.gold_18k_sale?.toString() ?? "Loading...",
-        silver: data.silver_per_kg_sale
-          ? Math.round(data.silver_per_kg_sale / 1000).toString()
-          : "Loading...", // safely handle missing silver
+      // 3) Fallback to external upstream feed
+      const upstream = "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php";
+      const raw = await fetchJsonSafe(upstream);
+
+      // Map external keys: {"24K Gold":113000,"22K Gold":103960,"18K Gold":93790,"Silver":1340}
+      const gold_24k_sale = Number(raw["24K Gold"]) || null;
+      const gold_22k_sale = Number(raw["22K Gold"]) || null;
+      const gold_18k_sale = Number(raw["18K Gold"]) || null;
+      const silver_per_gram = raw?.Silver ? Number(raw.Silver) / 10 : null;
+
+      const payload = {
+        gold_24k_sale,
+        gold_22k_sale,
+        gold_18k_sale,
+        silver_per_kg_sale: silver_per_gram != null ? silver_per_gram * 1000 : null,
+        source: "businessmantra_api_fallback",
       };
 
+      const convertedRates = toState(payload, payload.source);
       setRates(convertedRates);
+      setDataSource(payload.source);
       setLastUpdated(new Date().toLocaleTimeString());
-      setDataSource(data.source || "vercel_postgresql"); // expect backend to send "source"
     } catch (error) {
-      console.error("❌ Failed to fetch rates:", error);
+      console.error("❌ Failed to fetch rates (all fallbacks):", error);
       setRates({
         vedhani: "Error",
         ornaments22K: "Error",
@@ -89,6 +141,8 @@ const CurrentRates = () => {
         return "🖥️ Server";
       case "local_sync":
         return "🔄 Sync";
+      case "businessmantra_api_fallback":
+        return "🌐 Fallback";
       case "loading":
         return "⏳ Loading";
       case "error":
