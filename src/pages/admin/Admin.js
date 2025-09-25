@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import client from "../../lib/db";
 import "./Admin.css";
 
 const Admin = () => {
@@ -30,20 +29,27 @@ const Admin = () => {
 
     try {
       setLoading(true);
-      await client.connect();
 
-      await client.query(
-        `INSERT INTO gold_rates (gold_24k_sale, gold_22k_sale, gold_18k_sale, silver_per_kg_sale)
-         VALUES ($1, $2, $3, $4)`,
-        [
-          Number(rates.vedhani),
-          Number(rates.ornaments22K),
-          Number(rates.ornaments18K),
-          Number(rates.silver),
-        ]
-      );
+      // Post to serverless API to store rates in PostgreSQL
+      const resp = await fetch("/api/sync-rates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gold_24k_sale: Number(rates.vedhani),
+          gold_24k_purchase: Number(rates.vedhani), // mirror sale if purchase not provided
+          gold_22k_sale: Number(rates.ornaments22K),
+          gold_22k_purchase: Number(rates.ornaments22K),
+          gold_18k_sale: Number(rates.ornaments18K),
+          gold_18k_purchase: Number(rates.ornaments18K),
+          silver_per_kg_sale: Number(rates.silver),
+          silver_per_kg_purchase: Number(rates.silver),
+        }),
+      });
 
-      await client.end();
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `API error: ${resp.status}`);
+      }
 
       alert("✅ Rates updated successfully!");
       setRates({ vedhani: "", ornaments22K: "", ornaments18K: "", silver: "" });
