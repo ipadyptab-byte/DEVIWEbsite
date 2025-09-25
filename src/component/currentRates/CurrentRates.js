@@ -26,13 +26,32 @@ const CurrentRates = () => {
       if (contentType.includes("application/json")) {
         data = await response.json();
       } else {
-        const text = await response.text();
-        throw new Error(
-          `Non-JSON response from /api/rates. First chars: ${text.slice(0, 15)}`
-        );
+        // Fallback: fetch directly from external API if serverless route isn't available
+        const fallbackResp = await fetch("https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php", { cache: "no-store" });
+        if (!fallbackResp.ok) {
+          const text = await response.text();
+          throw new Error(
+            `Non-JSON response from /api/rates. First chars: ${text.slice(0, 15)}`
+          );
+        }
+        const raw = await fallbackResp.text();
+        const cleaned = raw.trim()
+          .replace(/^```json\s*/i, "")
+          .replace(/^```\s*/i, "")
+          .replace(/\s*```$/i, "");
+        data = JSON.parse(cleaned);
+        // Map external feed to expected shape
+        data = {
+          gold_24k_sale: Number(data["24K Gold"]) || null,
+          gold_22k_sale: Number(data["22K Gold"]) || null,
+          gold_18k_sale: Number(data["18K Gold"]) || null,
+          // silver per gram from external appears per 10g. Convert -> per gram -> UI expects per kg then divides by 1000.
+          silver_per_kg_sale: data?.Silver ? (Number(data.Silver) / 10) * 1000 : null,
+          source: "businessmantra_api_fallback",
+        };
       }
 
-      console.log("✅ Rates fetched from server:", data);
+      console.log("✅ Rates fetched:", data);
 
       const convertedRates = {
         vedhani: data.gold_24k_sale?.toString() ?? "Loading...",
