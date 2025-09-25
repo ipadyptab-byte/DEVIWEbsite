@@ -8,7 +8,8 @@ import AboutSection from '../../component/about/AboutSection';
 import AboutInfoSection from '../../component/about/aboutinfo';
 import Schemess from '../../component/schemess/Schemes';
 import Hero from '../../component/hero/Hero';
-import { getStorage, ref, listAll, getDownloadURL } from 'firebase/storage';
+import { ref, listAll, getDownloadURL } from 'firebase/storage';
+import { safeGetStorage } from '../../lib/firebase';
 
 const Home = () => {
   const [latestImageUrl, setLatestImageUrl] = useState(null);
@@ -16,21 +17,29 @@ const Home = () => {
 
   useEffect(() => {
     const fetchLatestImage = async () => {
-      const storage = getStorage();
+      const storage = safeGetStorage();
+      if (!storage) {
+        // Firebase not configured or failed to initialize; skip popup image
+        return;
+      }
       const listRef = ref(storage, 'images/');
-      const res = await listAll(listRef);
+      try {
+        const res = await listAll(listRef);
 
-      if (res.items.length > 0) {
-        // Sort items by the timestamp in the file name
-        const sortedItems = res.items.sort((a, b) => {
-          const aTimestamp = parseInt(a.name.split('_')[0], 10);
-          const bTimestamp = parseInt(b.name.split('_')[0], 10);
-          return bTimestamp - aTimestamp;
-        });
+        if (res.items.length > 0) {
+          // Sort items by the timestamp in the file name
+          const sortedItems = res.items.sort((a, b) => {
+            const aTimestamp = parseInt(a.name.split('_')[0], 10);
+            const bTimestamp = parseInt(b.name.split('_')[0], 10);
+            return bTimestamp - aTimestamp;
+          });
 
-        const latestItem = sortedItems[0]; // Get the most recent image
-        const url = await getDownloadURL(latestItem);
-        setLatestImageUrl(url);
+          const latestItem = sortedItems[0]; // Get the most recent image
+          const url = await getDownloadURL(latestItem);
+          setLatestImageUrl(url);
+        }
+      } catch {
+        // ignore firebase errors
       }
     };
 
