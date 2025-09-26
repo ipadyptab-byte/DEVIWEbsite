@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase/Firebase';
 import './TvDisplay.css';
 
 const TvDisplay = () => {
@@ -14,27 +12,34 @@ const TvDisplay = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const documentId = "GF8lmn4pjyeuqPzA0xDE";
-    const docRef = doc(db, "rates", documentId);
-    
-    // Set up real-time listener for rates
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setRates(docSnap.data());
-        setLastUpdated(new Date());
-        console.log("TV Display: Rates updated in real-time");
-      } else {
-        console.log("No rates document found");
+    const fetchRates = async () => {
+      try {
+        const r = await fetch('/api/rates');
+        if (r.ok) {
+          const data = await r.json();
+          setRates({
+            vedhani: data.vedhani || "",
+            ornaments22K: data.ornaments22K || "",
+            ornaments18K: data.ornaments18K || "",
+            silver: data.silver || ""
+          });
+          setLastUpdated(new Date());
+        }
+      } catch (err) {
+        console.error('Error fetching rates:', err);
+        setRates({
+          vedhani: "Connection Error",
+          ornaments22K: "Connection Error",
+          ornaments18K: "Connection Error",
+          silver: "Connection Error",
+        });
       }
-    }, (error) => {
-      console.error("Error listening to rates: ", error);
-      setRates({
-        vedhani: "Connection Error",
-        ornaments22K: "Connection Error",
-        ornaments18K: "Connection Error",
-        silver: "Connection Error",
-      });
-    });
+    };
+
+    // initial fetch
+    fetchRates();
+    // poll every 5 seconds
+    const poll = setInterval(fetchRates, 5000);
 
     // Update current time every second
     const timeInterval = setInterval(() => {
@@ -43,7 +48,7 @@ const TvDisplay = () => {
 
     // Cleanup
     return () => {
-      unsubscribe();
+      clearInterval(poll);
       clearInterval(timeInterval);
     };
   }, []);

@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase/Firebase";
 import './Admin.css';
-
-const DOCUMENT_ID = "GF8lmn4pjyeuqPzA0xDE";
-const API_URL = "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php";
 
 const Admin = () => {
   const [rates, setRates] = useState({
@@ -27,9 +22,14 @@ const Admin = () => {
     e.preventDefault();
 
     try {
-      const documentRef = doc(db, "rates", DOCUMENT_ID);
+      const res = await fetch("/api/rates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rates),
+      });
 
-      await updateDoc(documentRef, rates);
+      if (!res.ok) throw new Error(`Failed to update rates (${res.status})`);
+
       alert("Rates updated successfully!");
       setRates({
         vedhani: "",
@@ -46,25 +46,14 @@ const Admin = () => {
   const fetchAndSaveRates = async () => {
     try {
       setLoading(true);
-      const res = await fetch(API_URL);
+      const res = await fetch("/api/rates-fetch", { method: "POST" });
       if (!res.ok) {
         throw new Error(`API responded with status ${res.status}`);
       }
-      const data = await res.json();
-      // Map API fields to our Firestore schema
-      const mapped = {
-        vedhani: data["24K Gold"] ?? "",
-        ornaments22K: data["22K Gold"] ?? "",
-        ornaments18K: data["18K Gold"] ?? "",
-        silver: data["Silver"] ?? "",
-      };
+      const mapped = await res.json();
 
       // Update UI with fetched values
       setRates(mapped);
-
-      // Persist to Firestore
-      const documentRef = doc(db, "rates", DOCUMENT_ID);
-      await updateDoc(documentRef, mapped);
 
       alert("Fetched latest rates from API and saved to database.");
     } catch (error) {
