@@ -43,14 +43,27 @@ const Admin = () => {
     }
   };
 
+  const fetchJsonWithCors = async (url) => {
+    // Try direct fetch first; if CORS blocks, fall back to public proxy
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`API responded with status ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      // Fallback via corsproxy.io
+      const proxied = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      const res = await fetch(proxied);
+      if (!res.ok) throw new Error(`Proxied API responded with status ${res.status}`);
+      return await res.json();
+    }
+  };
+
   const fetchAndSaveRates = async () => {
     try {
       setLoading(true);
-      const res = await fetch(API_URL);
-      if (!res.ok) {
-        throw new Error(`API responded with status ${res.status}`);
-      }
-      const data = await res.json();
+
+      const data = await fetchJsonWithCors(API_URL);
+
       // Map API fields to our Firestore schema
       const mapped = {
         vedhani: data["24K Gold"] ?? "",
