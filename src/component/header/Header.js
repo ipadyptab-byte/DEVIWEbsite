@@ -11,7 +11,6 @@ import { FaInfoCircle, FaRegListAlt } from 'react-icons/fa';
 // import { BsGraphUpArrow } from "react-icons/bs";
 import logo from '../../images/logo.png';
 import CurrentRates from '../currentRates/CurrentRates';
-import CurrentRatesDemo from '../currentRates/CurrentRatesDemo';
 
 const HeaderTop = () => {
   return (
