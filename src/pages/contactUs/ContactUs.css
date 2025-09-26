@@ -64,7 +64,7 @@
 
 .store-info-block {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   width: 48%;
   padding: 3%;
   background-color: rgba(128, 128, 128, 0.078);
