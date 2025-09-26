@@ -3,6 +3,7 @@ import './Layout.scss';
 import { Outlet } from 'react-router-dom';
 import Header from '../component/header/Header';
 import Footer from '../component/footer/Footer';
+import ErrorBoundary from './ErrorBoundary';
 
 const Layout = () => {
   return (
@@ -11,8 +12,10 @@ const Layout = () => {
           <Header/>
         </div>
         <div className='pageContainer'>
-          <Outlet />
-          <Footer/>
+          <ErrorBoundary>
+            <Outlet />
+            <Footer/>
+          </ErrorBoundary>
         </div>
     </div>
     
