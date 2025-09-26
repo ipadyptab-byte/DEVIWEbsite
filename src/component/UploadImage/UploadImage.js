@@ -16,6 +16,11 @@ const UploadImage = () => {
   };
 
   const handleUpload = () => {
+    if (!storage) {
+      setStatus('Image upload is unavailable: Firebase Storage is not configured.');
+      return;
+    }
+
     if (!image) {
       setStatus('Please select an image first.');
       return;
@@ -48,8 +53,9 @@ const UploadImage = () => {
 
   return (
     <div className="upload-container">
-      <input type="file" onChange={handleImageChange} />
-      <button onClick={handleUpload}>Upload</button>
+      {!storage && <p style={{ color: 'red' }}>Firebase Storage is not configured. Uploading is disabled.</p>}
+      <input type="file" onChange={handleImageChange} disabled={!storage} />
+      <button onClick={handleUpload} disabled={!storage}>Upload</button>
       <progress value={progress} max="100" />
       <p>{status}</p>
     </div>
