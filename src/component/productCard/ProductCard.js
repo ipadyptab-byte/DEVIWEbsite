@@ -71,12 +71,15 @@ const ProductCard = (props) => {
                       <IoIosEye />
                     </div>
                     {
-                      product.product_segment === "BESTSELLERS"  <ddiv className="product_label bs">Best Selle<//ddiv>
-                        : product.product_segment === "NEW ARRIVALS"  <idiv classme="product_label na">New Arrivals</div>
-                          : product.product_segment == "HOT" ? <div className="product_label hot">Our Picks</div>
-                            : null
+                       product.product_segment === "BESTSELLERS" ? (
+                         <div className="product_label bs">Best Seller</div>
+                          ) : product.product_segment === "NEW ARRIVALS" ? (
+                          <div className="product_label na">New Arrivals</div>
+                                ) : product.product_segment === "HOT" ? (
+                              <div className="product_label hot">Our Picks</div>
+                       ) : null
+                      }
 
-                    }
                     <div className="card__product_details">
                       <div className="icon_container">
                         <AiOutlineHeart />
