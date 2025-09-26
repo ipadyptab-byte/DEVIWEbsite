@@ -8,7 +8,8 @@ import AboutSection from '../../component/about/AboutSection';
 import AboutInfoSection from '../../component/about/aboutinfo';
 import Schemess from '../../component/schemess/Schemes';
 import Hero from '../../component/hero/Hero';
-import { getStorage, ref, listAll, getDownloadURL } from 'firebase/storage';
+import { ref, listAll, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../firebase/Firebase';
 
 const Home = () => {
   const [latestImageUrl, setLatestImageUrl] = useState(null);
@@ -16,7 +17,6 @@ const Home = () => {
 
   useEffect(() => {
     const fetchLatestImage = async () => {
-      const storage = getStorage();
       const listRef = ref(storage, 'images/');
       const res = await listAll(listRef);
 
