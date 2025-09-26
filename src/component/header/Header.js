@@ -79,7 +79,7 @@ const HeaderMiddle = () => {
 
             {/* Current Rates */}
 
-            <CurrentRatesDemo />
+            <CurrentRates />
 
             <Link className="icon_container" to="/contactUs">
               <span className="icon_wrapper">
