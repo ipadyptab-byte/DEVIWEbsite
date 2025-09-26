@@ -17,6 +17,11 @@ const Home = () => {
 
   useEffect(() => {
     const fetchLatestImage = async () => {
+      // If storage is not configured, skip silently
+      if (!storage) {
+        setIsPopupVisible(false);
+        return;
+      }
       const listRef = ref(storage, 'images/');
       const res = await listAll(listRef);
 
