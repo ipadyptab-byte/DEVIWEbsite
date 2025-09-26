@@ -18,7 +18,7 @@
  * We use a single fixed id: 'GF8lmn4pjyeuqPzA0xDE'
  */
 
-import { neon } from '@neondatabase/serverless';
+const { neon } = require('@neondatabase/serverless');
 
 const FIXED_ID = 'GF8lmn4pjyeuqPzA0xDE';
 
@@ -52,7 +52,7 @@ async function ensureSchema(sql) {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
     const sql = getClient();
     await ensureSchema(sql);
