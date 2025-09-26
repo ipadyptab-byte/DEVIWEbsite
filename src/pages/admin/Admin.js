@@ -1,9 +1,6 @@
 import React, { useState } from "react";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase/Firebase";
 import './Admin.css';
 
-const DOCUMENT_ID = "GF8lmn4pjyeuqPzA0xDE";
 const API_URL = "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php";
 
 const Admin = () => {
@@ -27,9 +24,12 @@ const Admin = () => {
     e.preventDefault();
 
     try {
-      const documentRef = doc(db, "rates", DOCUMENT_ID);
+      await fetch("/api/rates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rates),
+      });
 
-      await updateDoc(documentRef, rates);
       alert("Rates updated successfully!");
       setRates({
         vedhani: "",
@@ -51,7 +51,7 @@ const Admin = () => {
         throw new Error(`API responded with status ${res.status}`);
       }
       const data = await res.json();
-      // Map API fields to our Firestore schema
+      // Map API fields to our schema
       const mapped = {
         vedhani: data["24K Gold"] ?? "",
         ornaments22K: data["22K Gold"] ?? "",
@@ -62,9 +62,12 @@ const Admin = () => {
       // Update UI with fetched values
       setRates(mapped);
 
-      // Persist to Firestore
-      const documentRef = doc(db, "rates", DOCUMENT_ID);
-      await updateDoc(documentRef, mapped);
+      // Persist to Neon via our API
+      await fetch("/api/rates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mapped),
+      });
 
       alert("Fetched latest rates from API and saved to database.");
     } catch (error) {

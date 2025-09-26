@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { BsGraphUpArrow } from "react-icons/bs";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../../firebase/Firebase";
 import borderLine from "../../images/border_line.png";
 import "./CurrentRates.css";
 
@@ -12,9 +10,6 @@ const CurrentRates = () => {
     ornaments18K: "",
     silver: "",
   });
-
-  // Firestore document id
-  const documentId = "GF8lmn4pjyeuqPzA0xDE";
 
   const fetchAndStoreRates = async () => {
     try {
@@ -45,24 +40,32 @@ const CurrentRates = () => {
         silver: silver_per_gram.toString(), // per gram
       };
 
-      // 3) Save into Firestore
-      const docRef = doc(db, "rates", documentId);
-      await setDoc(docRef, newRates, { merge: true });
+      // 3) Save into Neon via our API
+      await fetch("/api/rates", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRates),
+      });
 
       // 4) Update state
       setRates(newRates);
     } catch (err) {
       console.error("❌ Failed to fetch/store rates:", err);
 
-      // Fallback: read last stored rates
+      // Fallback: read last stored rates from Neon via our API
       try {
-        const docRef = doc(db, "rates", documentId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setRates(docSnap.data());
+        const res = await fetch("/api/rates");
+        if (res.ok) {
+          const data = await res.json();
+          setRates({
+            vedhani: data.vedhani || "",
+            ornaments22K: data.ornaments22K || "",
+            ornaments18K: data.ornaments18K || "",
+            silver: data.silver || "",
+          });
         }
-      } catch (fireErr) {
-        console.error("Firestore fallback error:", fireErr);
+      } catch (apiErr) {
+        console.error("API fallback error:", apiErr);
       }
     }
   };

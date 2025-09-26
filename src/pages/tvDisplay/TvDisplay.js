@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase/Firebase';
 import './TvDisplay.css';
 
 const TvDisplay = () => {
@@ -14,27 +12,31 @@ const TvDisplay = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const documentId = "GF8lmn4pjyeuqPzA0xDE";
-    const docRef = doc(db, "rates", documentId);
-    
-    // Set up real-time listener for rates
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setRates(docSnap.data());
-        setLastUpdated(new Date());
-        console.log("TV Display: Rates updated in real-time");
-      } else {
-        console.log("No rates document found");
+    const fetchRates = async () => {
+      try {
+        const res = await fetch('/api/rates');
+        if (res.ok) {
+          const data = await res.json();
+          setRates({
+            vedhani: data.vedhani || "",
+            ornaments22K: data.ornaments22K || "",
+            ornaments18K: data.ornaments18K || "",
+            silver: data.silver || "",
+          });
+          setLastUpdated(new Date());
+        } else {
+          console.error('Failed to fetch rates:', res.status);
+        }
+      } catch (err) {
+        console.error('Error fetching rates:', err);
       }
-    }, (error) => {
-      console.error("Error listening to rates: ", error);
-      setRates({
-        vedhani: "Connection Error",
-        ornaments22K: "Connection Error",
-        ornaments18K: "Connection Error",
-        silver: "Connection Error",
-      });
-    });
+    };
+
+    // Initial fetch
+    fetchRates();
+
+    // Poll every 5 seconds
+    const pollInterval = setInterval(fetchRates, 5000);
 
     // Update current time every second
     const timeInterval = setInterval(() => {
@@ -43,7 +45,7 @@ const TvDisplay = () => {
 
     // Cleanup
     return () => {
-      unsubscribe();
+      clearInterval(pollInterval);
       clearInterval(timeInterval);
     };
   }, []);
@@ -79,7 +81,7 @@ const TvDisplay = () => {
       </div>
 
       <div className="rates-container">
-        <h2 className="rates-title">Today's Gold & Silver Rates</h2>
+        <h2 className="rates-title">Today's Gold &amp; Silver Rates</h2>
         
         <div className="rates-grid">
           <div className="rate-card gold-vedhani">
