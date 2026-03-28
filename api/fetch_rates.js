@@ -58,13 +58,21 @@ async function ensureSchema(sql) {
 
 async function fetchSource() {
   const resp = await fetch(SOURCE_URL, {
-    headers: { 'Accept': 'application/json' }
+    headers: { 'Accept': 'application/json' },
+    cache: 'no-store'
   });
   if (!resp.ok) {
     throw new Error(`Failed to fetch source: ${resp.status} ${resp.statusText}`);
   }
-  const data = await resp.json();
-  return data;
+
+  const raw = await resp.text();
+  const cleaned = raw
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '');
+
+  return JSON.parse(cleaned);
 }
 
 module.exports = async function handler(req, res) {

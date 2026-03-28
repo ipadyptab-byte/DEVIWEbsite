@@ -41,15 +41,6 @@ async function ensureSchema(sql) {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
   `;
-
-  // Ensure a single row exists
-  const existing = await sql`SELECT id FROM rates WHERE id = ${FIXED_ID}`;
-  if (existing.length === 0) {
-    await sql`
-      INSERT INTO rates (id, vedhani, ornaments22k, ornaments18k, silver)
-      VALUES (${FIXED_ID}, '', '', '', '')
-    `;
-  }
 }
 
 module.exports = async function handler(req, res) {
@@ -58,15 +49,28 @@ module.exports = async function handler(req, res) {
     await ensureSchema(sql);
 
     if (req.method === 'GET') {
-      const rows = await sql`
-        SELECT id, vedhani, ornaments22k, ornaments18k, silver, updated_at
+      // Prefer the latest row (so we can support databases that store multiple updates)
+      // Fallback to fixed-id row if that's how the DB is structured.
+      let rows = await sql`
+        SELECT vedhani, ornaments22k, ornaments18k, silver, updated_at
         FROM rates
-        WHERE id = ${FIXED_ID}
+        ORDER BY updated_at DESC NULLS LAST
         LIMIT 1
       `;
+
+      if (rows.length === 0) {
+        rows = await sql`
+          SELECT vedhani, ornaments22k, ornaments18k, silver, updated_at
+          FROM rates
+          WHERE id = ${FIXED_ID}
+          LIMIT 1
+        `;
+      }
+
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Rates not found' });
       }
+
       const r = rows[0];
       return res.status(200).json({
         vedhani: r.vedhani || '',
@@ -86,6 +90,7 @@ module.exports = async function handler(req, res) {
         silver = '',
       } = body;
 
+      // Upsert into a single fixed row (used by the admin UI / updater scripts)
       await sql`
         INSERT INTO rates (id, vedhani, ornaments22k, ornaments18k, silver, updated_at)
         VALUES (${FIXED_ID}, ${vedhani}, ${ornaments22K}, ${ornaments18K}, ${silver}, NOW())

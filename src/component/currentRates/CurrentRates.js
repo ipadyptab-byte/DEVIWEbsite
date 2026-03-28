@@ -13,9 +13,17 @@ const CurrentRates = () => {
   const [updatedAt, setUpdatedAt] = useState("");
 
   const fetchRatesFromDb = async () => {
-    const res = await fetch("/api/rates", { cache: "no-store" });
+    let res = await fetch("/api/rates", { cache: "no-store" });
+
+    // If DB has no data yet, try triggering a fetch-and-save on the backend once.
+    if (res.status === 404) {
+      await fetch("/api/fetch_rates", { method: "GET", cache: "no-store" });
+      res = await fetch("/api/rates", { cache: "no-store" });
+    }
+
     if (!res.ok) {
-      throw new Error(`Failed to fetch /api/rates: ${res.status}`);
+      const details = await res.text().catch(() => "");
+      throw new Error(`Failed to fetch /api/rates: ${res.status} ${details}`);
     }
 
     const data = await res.json();
