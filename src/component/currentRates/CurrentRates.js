@@ -10,73 +10,42 @@ const CurrentRates = () => {
     ornaments18K: "",
     silver: "",
   });
+  const [updatedAt, setUpdatedAt] = useState("");
 
-  const fetchAndStoreRates = async () => {
-    try {
-      // 1) Fetch from external API
-      const apiUrl =
-        "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php";
-      const resp = await fetch(apiUrl, { cache: "no-store" });
-
-      const raw = await resp.text();
-      const cleaned = raw
-        .trim()
-        .replace(/^```json\s*/i, "")
-        .replace(/^```\s*/i, "")
-        .replace(/\s*```$/i, "");
-
-      const data = JSON.parse(cleaned);
-
-      // 2) Map values
-      const vedhani = Number(data["24K Gold"]) || 0;
-      const ornaments22K = Number(data["22K Gold"]) || 0;
-      const ornaments18K = Number(data["18K Gold"]) || 0;
-      const silver_per_gram = data?.Silver ? Number(data.Silver) / 10 : 0;
-
-      const newRates = {
-        vedhani: vedhani.toString(),
-        ornaments22K: ornaments22K.toString(),
-        ornaments18K: ornaments18K.toString(),
-        silver: silver_per_gram.toString(), // per gram
-      };
-
-      // 3) Save into Neon via our API
-      await fetch("/api/rates", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newRates),
-      });
-
-      // 4) Update state
-      setRates(newRates);
-    } catch (err) {
-      console.error("❌ Failed to fetch/store rates:", err);
-
-      // Fallback: read last stored rates from Neon via our API
-      try {
-        const res = await fetch("/api/rates");
-        if (res.ok) {
-          const data = await res.json();
-          setRates({
-            vedhani: data.vedhani || "",
-            ornaments22K: data.ornaments22K || "",
-            ornaments18K: data.ornaments18K || "",
-            silver: data.silver || "",
-          });
-        }
-      } catch (apiErr) {
-        console.error("API fallback error:", apiErr);
-      }
+  const fetchRatesFromDb = async () => {
+    const res = await fetch("/api/rates", { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch /api/rates: ${res.status}`);
     }
+
+    const data = await res.json();
+    setRates({
+      vedhani: data.vedhani || "",
+      ornaments22K: data.ornaments22K || "",
+      ornaments18K: data.ornaments18K || "",
+      silver: data.silver || "",
+    });
+    setUpdatedAt(data.updated_at || "");
   };
 
   useEffect(() => {
-    fetchAndStoreRates();
+    fetchRatesFromDb().catch((err) => {
+      console.error("❌ Failed to fetch rates from DB:", err);
+    });
 
     // Refresh every 30s
-    const interval = setInterval(fetchAndStoreRates, 30000);
+    const interval = setInterval(() => {
+      fetchRatesFromDb().catch((err) => {
+        console.error("❌ Failed to fetch rates from DB:", err);
+      });
+    }, 30000);
+
     return () => clearInterval(interval);
   }, []);
+
+  const updatedAtLabel = updatedAt
+    ? new Date(updatedAt).toLocaleString()
+    : "N/A";
 
   return (
     <div className="icon_container">
@@ -86,10 +55,11 @@ const CurrentRates = () => {
       <span className="title">Current Rates</span>
 
       <div className="tooltip">
-        <h1>Today's Gold Rates</h1>
-        <div className="border-line">
-          <img src={borderLine} alt="border line" />
-        </div>
+       <<h1>Today's Gold Rat</</h1>
+       <<p className="rates-updated-at">Last updated: {updatedAtLab}</alp>
+       <idiv className="border-line">
+         < img src={borderLine} alt="border line" />
+      </  div>
         <ul>
           <li className="rates">
             Vedhani <span>₹{rates.vedhani || "N/A"}</span>
